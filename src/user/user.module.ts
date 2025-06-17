@@ -1,19 +1,14 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { UserController } from './user.controller';
+import { PrismaModule } from '../prisma/prisma.module'; // Importar PrismaModule
+import { AuthModule } from '../auth/auth.module'; // Importar AuthModule
+import { RoleModule } from '../role/role.module'; // Importar RoleModule
+import { CommonModule } from '../common/common.module'; // Importar CommonModule
 
 @Module({
-  imports: [
-    // Importar la entidad User para que TypeORM la reconozca en este módulo
-    TypeOrmModule.forFeature([User])
-  ],
-  controllers: [UserController],
+  imports: [PrismaModule, AuthModule, RoleModule, CommonModule], // Añadir PrismaModule, AuthModule, RoleModule y CommonModule a los imports
   providers: [UserService],
-  exports: [
-    UserService, // Exportar el servicio para usarlo en otros módulos
-    TypeOrmModule // Exportar TypeOrmModule si otros módulos necesitan acceso directo al repositorio
-  ],
+  controllers: [UserController]
 })
 export class UserModule {}

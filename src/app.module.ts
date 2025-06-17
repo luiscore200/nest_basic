@@ -1,15 +1,22 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+
 import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { User } from './user/user.entity';
+import { HttpExceptionFilter } from './common/filters/exception.filter';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthService } from './auth/auth.service';
+import { RoleModule } from './role/role.module';
+import { JwtService } from './auth/jwt/jwt.service';
+import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+
+import { CommonModule } from './common/common.module';
+
 
 @Module({
   imports: [
@@ -17,20 +24,17 @@ import { UserModule } from './user/user.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
-    // Configuración de TypeORM con SQLite
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'database.sqlite',
-      entities: [User],
-      synchronize: process.env.NODE_ENV !== 'production',
-      logging: process.env.NODE_ENV === 'development',
-      autoLoadEntities: true,
-    }),
 
-    // Registro de entidades
-    TypeOrmModule.forFeature([User]),
+    // Importar PrismaModule
+    PrismaModule,
+
+    RoleModule,
+
+    AuthModule,
+
     UserModule,
+
+    CommonModule, // CommonModule ya exporta PercistenceService
   ],
   controllers: [AppController],
   providers: [
@@ -52,6 +56,7 @@ import { UserModule } from './user/user.module';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+   
   ],
 })
 export class AppModule {}

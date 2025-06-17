@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
+import { ApiResponse, PaginatedResponse } from '../interfaces/response.interface';
 
 export class ResponseManager {
   static success<T>(

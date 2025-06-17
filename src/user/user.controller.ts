@@ -1,91 +1,61 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  ParseIntPipe,
-  HttpCode,
-  HttpStatus,
-  Req,
-} from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, ForbiddenException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResponseManager } from '../common/utils/response-manager.util';
+import { JwtGuard } from '../auth/jwt/jwt.guard'; // Asegúrate de la ruta correcta
+import { RoleGuard } from '../role/role.guard'; // Asegúrate de la ruta correcta
+import { Roles } from '../common/decorators/roles.decorator'; // Asegúrate de la ruta correcta
+import { RoleName } from '@prisma/client'; // Asegúrate de la ruta correcta
+// Importar el tipo UserWithRole desde el decorador GetUser
+import { GetUser, UserWithRole } from '../common/decorators/get-user.decorator'; // Asegúrate de la ruta correcta
+import { ResponseManager } from '../common/utils/response.manager'; // Importar ResponseManager
 
-@Controller('users')
+@Controller('user')
+@UseGuards(JwtGuard,RoleGuard) // Aplicar guards a nivel de controlador
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
+  @Roles(RoleName.ADMIN) // Solo ADMIN puede crear usuarios
+  async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.userService.create(createUserDto);
-    return ResponseManager.created(
-      user,
-      'User created successfully',
-      req.url,
-    );
+    return ResponseManager.created(user, 'Usuario creado exitosamente');
   }
 
   @Get()
-  async findAll(@Req() req: Request) {
+  @Roles(RoleName.USER,RoleName.ADMIN) // Solo ADMIN puede listar todos los usuarios
+  async findAll() {
     const users = await this.userService.findAll();
-    return ResponseManager.success(
-      users,
-      'Users retrieved successfully',
-      HttpStatus.OK,
-      req.url,
-    );
-  }
-
-  @Get('count')
-  async count(@Req() req: Request) {
-    const count = await this.userService.count();
-    return ResponseManager.success(
-      { count },
-      'User count retrieved successfully',
-      HttpStatus.OK,
-      req.url,
-    );
+    return ResponseManager.success(users, 'Usuarios obtenidos exitosamente');
   }
 
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
-    const user = await this.userService.findOne(id);
-    return ResponseManager.success(
-      user,
-      'User retrieved successfully',
-      HttpStatus.OK,
-      req.url,
-    );
+  @Roles(RoleName.ADMIN, RoleName.USER) // ADMIN o USER pueden ver un usuario
+  async findOne(@Param('id', ParseIntPipe) id: number, @GetUser() user: UserWithRole) { // Usar UserWithRole
+    // Lógica adicional: permitir que un usuario vea su propio perfil
+    if (user.role.name !== RoleName.ADMIN && user.id !== id) {
+       // Lanzar ForbiddenException si no es ADMIN y no es su propio ID
+       throw new ForbiddenException('You can only view your own profile');
+    }
+    const foundUser = await this.userService.findOne(id);
+    return ResponseManager.success(foundUser, 'Usuario obtenido exitosamente');
   }
 
   @Patch(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-    @Req() req: Request,
-  ) {
-    const user = await this.userService.update(id, updateUserDto);
-    return ResponseManager.updated(
-      user,
-      'User updated successfully',
-      req.url,
-    );
+  @Roles(RoleName.ADMIN, RoleName.USER) // ADMIN o USER pueden actualizar un usuario
+  async update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto, @GetUser() user: UserWithRole) { // Usar UserWithRole
+     // Lógica adicional: permitir que un usuario actualice solo su propio perfil
+     if (user.role.name !== RoleName.ADMIN && user.id !== id) {
+        throw new ForbiddenException('You can only update your own profile');
+     }
+    const updatedUser = await this.userService.update(id, updateUserDto);
+    return ResponseManager.updated(updatedUser, 'Usuario actualizado exitosamente');
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+  @Roles(RoleName.ADMIN) // Solo ADMIN puede eliminar usuarios
+  async remove(@Param('id', ParseIntPipe) id: number) {
     await this.userService.remove(id);
-    return ResponseManager.deleted(
-      'User deleted successfully',
-      req.url,
-    );
+    return ResponseManager.deleted('Usuario eliminado exitosamente');
   }
 }

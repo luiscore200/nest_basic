@@ -2,14 +2,14 @@ import { Module, ValidationPipe } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+
 import { ConfigModule } from '@nestjs/config';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { User } from './user/user.entity';
-import { UserModule } from './user/user.module';
+import { HttpExceptionFilter } from './common/filters/exception.filter';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+
 
 @Module({
   imports: [
@@ -17,20 +17,18 @@ import { UserModule } from './user/user.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    
+
     // Configuración de TypeORM con SQLite
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: 'database.sqlite',
-      entities: [User],
+      entities: [], // Añadir Role a la lista de entidades
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
       autoLoadEntities: true,
     }),
 
-    // Registro de entidades
-    TypeOrmModule.forFeature([User]),
-    UserModule,
+
   ],
   controllers: [AppController],
   providers: [

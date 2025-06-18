@@ -53,7 +53,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @Roles(RoleName.ADMIN) // Solo ADMIN puede eliminar usuarios
+  @Roles(RoleName.ADMIN,RoleName.USER) // Solo ADMIN puede eliminar usuarios
   async remove(@Param('id', ParseIntPipe) id: number) {
     await this.userService.remove(id);
     return ResponseManager.deleted('Usuario eliminado exitosamente');

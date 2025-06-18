@@ -16,6 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 
 import { CommonModule } from './common/common.module';
+import { LocationModule } from './location/location.module';
 
 
 @Module({
@@ -25,7 +26,6 @@ import { CommonModule } from './common/common.module';
       isGlobal: true,
     }),
 
-    // Importar PrismaModule
     PrismaModule,
 
     RoleModule,
@@ -34,7 +34,9 @@ import { CommonModule } from './common/common.module';
 
     UserModule,
 
-    CommonModule, // CommonModule ya exporta PercistenceService
+    CommonModule,
+
+    LocationModule, 
   ],
   controllers: [AppController],
   providers: [

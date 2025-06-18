@@ -66,7 +66,7 @@ export class PercistenceService {
     await this.loadRoles(); // Simplemente recargar los roles
   }
 
-/** 
+
 
   async getCountries(): Promise<Country[]> {
     if (!this.countries) {
@@ -109,6 +109,6 @@ export class PercistenceService {
       this.countries = null;
     }
   }
-    */
+    
 
 }

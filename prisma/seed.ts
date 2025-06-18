@@ -36,7 +36,7 @@ async function main() {
   });
 
   console.log('Roles USER y ADMIN creados/actualizados.');
-/**
+
       // Primero limpiamos las tablas en el orden correcto (debido a las relaciones)
       await prisma.city.deleteMany();
       await prisma.department.deleteMany();
@@ -74,7 +74,7 @@ async function main() {
 
       
   console.log('Ubicaciones Actualizadas.');
-         */
+         
   
 }
 
